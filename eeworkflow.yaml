@@ -1,0 +1,182 @@
+main:
+  steps:
+  - init:
+      assign:
+        - project: "test-ee-deploy"
+        - region: "us-central1"
+        - bucket_name: "test-bucket-ee-deploy"
+        - model: "gs://ee-model-fortest"
+        - job_name: "ee-test-workflow-job"
+        - template_path: "gs://ee-model-dataflow-test/samples/dataflow/templates/eetest-beam-run.json"
+        - machine: e2-standard-2
+        - max_workers: 20
+
+  #gee download cloud function
+  - download_function:
+      call: http.post
+      args:
+          url: https://us-central1-test-ee-deploy.cloudfunctions.net/main
+          body:
+              input: ${bucket_name}
+      result: download_result
+  - log:
+      call: sys.log
+      args:
+        text: ${"task id ="+download_result.body.task}
+        severity: "INFO"
+
+#check if done
+  - wait_download:
+      call: DownloadWait
+      args:
+        name: ${download_result.body.task}
+        status: "SUCCEEDED"
+
+  #dataflow
+  - predict_dataflow:
+      call: LaunchDataflow
+      args:
+        project: ${project}
+        region: ${region}
+        template: ${template_path}
+        data_dir: ${download_result.body.folder}
+        model_dir: ${model}
+        machine: ${machine}
+        workers: ${max_workers}
+      result: JobId
+
+  #check on dataflow status
+  - wait_dataflow:
+      call: DataflowWaitUntilStatus
+      args:
+        project: ${project}
+        region: ${region}
+        jobId: ${JobId}
+        status: "JOB_STATE_DONE"
+
+  #upload to gee
+  - upload_function:
+      call: http.post
+      args:
+          url: CLOUD_RUN_SERVICE_URL
+          body:
+              input: ${download_result.body.folder}
+      result: upload_result
+
+  #return upload task ID
+  - return_result:
+      return: ${upload_result}
+
+
+
+LaunchDataflow:
+  params: [project, region, template, data_dir, model_dir, workers, machine]
+  steps:
+    - launch:
+        call: http.post
+        args:
+          url: ${"https://dataflow.googleapis.com/v1b3/projects/"+project+"/locations/"+region+"/flexTemplates:launch"}
+          auth:
+            type: OAuth2
+          body:
+            launchParameter:
+              jobName: ${"workflow-" + template }
+              parameters:
+                input: ${data_dir + "/download/*.tfrecord.gz"}
+                output: ${data_dir + "/predict/"}
+                model: ${model_dir}
+                max_num_workers: ${workers}
+                worker_machine_type: ${machine}
+
+              containerSpecGcsPath: ${template}
+        result: dataflowResponse
+        next: jobCreated
+    - jobCreated:
+        return: ${dataflowResponse.body.job.id}
+
+
+
+DataflowWaitUntilStatus:
+  params: [project, region, jobId, status]
+  steps:
+    - init:
+        assign:
+          - currentStatus: ""
+          - failureStatuses: ["JOB_STATE_FAILED", "JOB_STATE_CANCELLED", "JOB_STATE_UPDATED", "JOB_STATE_DRAINED"]
+    - check_condition:
+        switch:
+          - condition: ${currentStatus in failureStatuses}
+            next: exit_fail
+          - condition: ${currentStatus != status}
+            next: iterate
+        next: exit_success
+    - iterate:
+        steps:
+          - sleep30s:
+              call: sys.sleep
+              args:
+                seconds: 30
+          - getJob:
+              call: http.get
+              args:
+                url: ${"https://dataflow.googleapis.com/v1b3/projects/"+project+"/locations/"+region+"/jobs/"+jobId}
+                auth:
+                  type: OAuth2
+              result: getJobResponse
+          - getStatus:
+              assign:
+                - currentStatus: ${getJobResponse.body.currentState}
+          - log:
+              call: sys.log
+              args:
+                text: ${"Current job status="+currentStatus}
+                severity: "INFO"
+        next: check_condition
+    - exit_success:
+        return: ${currentStatus}
+    - exit_fail:
+        raise: ${"Dataflow job in unexpected terminal status "+currentStatus}
+
+
+DownloadWait:
+  params: [name, status]
+  steps:
+    - init:
+        assign:
+          - currentStatus: ""
+          - failureStatuses: ["CANCELLED", "FAILED", "CANCEL_REQUESTED"]
+    - check_condition:
+        switch:
+          - condition: ${currentStatus in failureStatuses}
+            next: exit_fail
+          - condition: ${currentStatus != status}
+            next: iterate
+        next: exit_success
+    - iterate:
+        steps:
+          - sleep60s:
+              call: sys.sleep
+              args:
+                seconds: 60
+          - getJob:
+              call: http.get
+              args:
+                url: ${"https://earthengine.googleapis.com/v1/"+name}
+                auth:
+                  type: OAuth2
+              result: getJobResponse
+          - getStatus:
+              assign:
+                - currentStatus: ${getJobResponse.body.metadata.state}
+          - log:
+              call: sys.log
+              args:
+                text: ${"Current job status="+currentStatus}
+                severity: "INFO"
+        next: check_condition
+    - exit_success:
+        return: ${currentStatus}
+    - exit_fail:
+        raise: ${"Download job in unexpected terminal status "+currentStatus}
+
+

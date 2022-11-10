@@ -1,0 +1,31 @@
+{
+    "name": "EE Predict Batch Pipeline v1",
+    "description": "EE Predict Batch Pipeline.",
+    "parameters": [
+        {
+        "name": "input",
+        "label": "input file location",
+        "helpText": "gcs bukcet / folder"
+        },
+        {
+        "name": "output",
+        "label": "output file location",
+        "helpText": "gcs bukcet / folder"
+        },
+        {
+        "name": "model",
+        "label": "path to model file",
+        "helpText": "gcs bucket / folder"
+        },
+        {
+        "name": "worker_machine_type",
+        "label": "Worker Type",
+        "helpText": "Worker Type"
+        },
+        {
+        "name": "max_num_workers",
+        "label": "Max Number of Workers",
+        "helpText": "Max Number of Workers"
+        }
+    ]
+}
