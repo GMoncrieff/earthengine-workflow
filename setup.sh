@@ -171,7 +171,7 @@ cd ..
 
 export WORKFLOW="ee-sample"
 export DESCRIPTION="Earth Engine sample workflow"
-export SOURCE="eeworkflow.yaml"
+export SOURCE="eeworkflowtest.yaml"
 
 gcloud workflows deploy "${WORKFLOW}" --location="${REGION}" --service-account="${SERVICE_ACCOUNT}" --source="${SOURCE}" --description="${DESCRIPTION}"
 
