@@ -67,8 +67,6 @@ main:
   - return_result:
       return: ${upload_result}
 
-
-
 LaunchDataflow:
   params: [project, region, template, data_dir, model_dir, workers, machine]
   steps:
@@ -80,21 +78,18 @@ LaunchDataflow:
             type: OAuth2
           body:
             launchParameter:
-              jobName: ${"workflowlaunch"}
-              parameters:
-                input: ${"'"+data_dir + "/download/*.tfrecord.gz"+"'"}
-                output: ${"'"+data_dir + "/predict/"+"'"}
-                model: ${"'"+model_dir+"'"}
-                max_num_workers: ${"'"+workers+"'"}
-                worker_machine_type: ${"'"+machine+"'"}
-
+              jobName: "eeworkflowdataflow"
               containerSpecGcsPath: ${template}
+              parameters: 
+                input: ${data_dir + "/download/*.tfrecord.gz"}
+                output: ${data_dir + "/predict/"}
+                model: ${model_dir}
+                max_num_workers: ${workers}
+                worker_machine_type: ${machine}
         result: dataflowResponse
         next: jobCreated
     - jobCreated:
         return: ${dataflowResponse.body.job.id}
-
-
 
 DataflowWaitUntilStatus:
   params: [project, region, jobId, status]
@@ -136,7 +131,6 @@ DataflowWaitUntilStatus:
         return: ${currentStatus}
     - exit_fail:
         raise: ${"Dataflow job in unexpected terminal status "+currentStatus}
-
 
 DownloadWait:
   params: [name, status]

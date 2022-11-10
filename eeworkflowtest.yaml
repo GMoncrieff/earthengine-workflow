@@ -5,7 +5,7 @@ main:
         - project: "test-ee-deploy"
         - region: "us-central1"
         - bucket_name: "test-bucket-ee-deploy"
-        - model: "gs://ee-model-fortest"
+        - model: "gs://ee-model-fortest/ee_test_model"
         - job_name: "ee-test-workflow-job"
         - template_path: "gs://ee-model-dataflow-test/samples/dataflow/templates/eetest-beam-run.json"
         - machine: "e2-standard-2"
@@ -55,11 +55,11 @@ LaunchDataflow:
               jobName: ${"workflowlunach"}
               containerSpecGcsPath: ${template}
               parameters: 
-                input: ${"'"+data_dir + "/download/*.tfrecord.gz"+"'"}
-                output: ${"'"+data_dir + "/predict/"+"'"}
-                model: ${"'"+model_dir+"'"}
-                max_num_workers: ${"'"+workers+"'"}
-                worker_machine_type: ${"'"+machine+"'"}
+                input: ${data_dir + "/download/*.tfrecord.gz"}
+                output: ${data_dir + "/predict/"}
+                model: ${model_dir}
+                max_num_workers: ${workers}
+                worker_machine_type: ${machine}
               
         result: dataflowResponse
         next: jobCreated

@@ -27,6 +27,9 @@ gcloud iam service-accounts create ee-test-deploy \
 
 export SERVICE_ACCOUNT=ee-test-deploy@test-ee-deploy.iam.gserviceaccount.com 
 
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+--member=serviceAccount:${SERVICE_ACCOUNT} \
+--role=roles/iam.serviceAccountUser
 
 gcloud projects add-iam-policy-binding $PROJECT_ID \
 --member=serviceAccount:${SERVICE_ACCOUNT} \
@@ -128,7 +131,7 @@ gcloud dataflow flex-template build $TEMPLATE_PATH \
 # Run the Flex Template.
 gcloud dataflow flex-template run "ee-testing-flow-`date +%Y%m%d-%H%M%S`" \
     --template-file-gcs-location "$TEMPLATE_PATH" \
-    --parameters input="gs://test-bucket-ee-deploy/2022-11-04/download2/*.tfrecord.gz" \
+    --parameters input="gs://test-bucket-ee-deploy/2022-11-04/download/*.tfrecord.gz" \
     --parameters output="gs://test-bucket-ee-deploy/2022-11-04/predict/" \
     --parameters model="gs://ee-model-fortest/ee_test_model" \
     --parameters max_num_workers=6 \
@@ -171,9 +174,15 @@ cd ..
 
 export WORKFLOW="ee-sample"
 export DESCRIPTION="Earth Engine sample workflow"
-export SOURCE="eeworkflowtest.yaml"
+export SOURCE="eeworkflow.yaml"
 
 gcloud workflows deploy "${WORKFLOW}" --location="${REGION}" --service-account="${SERVICE_ACCOUNT}" --source="${SOURCE}" --description="${DESCRIPTION}"
+
+
+#test
+
+gcloud workflows run "${WORKFLOW}" \
+--call-log-level=log-all-calls
 
 gcloud scheduler jobs create http ee-workflow-shedule \
 --location=${REGION} \
