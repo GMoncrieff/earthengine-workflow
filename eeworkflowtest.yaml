@@ -56,7 +56,7 @@ LaunchDataflow:
               containerSpecGcsPath: ${template}
               parameters: 
                 input: ${data_dir + "/download/*.tfrecord.gz"}
-                output: ${data_dir + "/predict/"}
+                output: ${data_dir + "/predict"}
                 model: ${model_dir}
                 max_num_workers: ${workers}
                 worker_machine_type: ${machine}
