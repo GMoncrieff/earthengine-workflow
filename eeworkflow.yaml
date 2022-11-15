@@ -58,7 +58,7 @@ main:
   - upload_function:
       call: http.post
       args:
-          url: CLOUD_RUN_SERVICE_URL
+          url: https://ee-upload-tbyud3ulrq-uc.a.run.app
           body:
               input: ${download_result.body.folder}
       result: upload_result
