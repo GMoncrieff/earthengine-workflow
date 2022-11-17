@@ -48,4 +48,4 @@ contains files to deploy the Cloud Run service that uploads the predictions back
 
 Look out for an upcoming blog post with a full rundown of deployment and design choices.
 
-Thank to [@mgietzmann](https://github.com/mgietzmann) for helping to build the first iteration of this pipeline
+Thanks to [@mgietzmann](https://github.com/mgietzmann) for helping to build the first iteration of this pipeline
