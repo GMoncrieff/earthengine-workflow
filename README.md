@@ -27,7 +27,9 @@ This repo is intended as a demonstation of this processing pipeline, and builds 
 
 For another example of a similar processing pipeline see [Global Renosterveld Watch](https://github.com/mgietzmann/global_renosterveld_watch).
 
-An outline of this repo:
+--------
+
+## An outline of this repo:
 
 ### [ee_function](ee_function/) 
 contains files to deploy the functon for exporting imagery from Earth Engine to Google CLoud Storage. 
