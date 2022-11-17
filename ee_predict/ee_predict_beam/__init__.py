@@ -36,23 +36,22 @@ def run():
 
     outputs = (
         p
-        | 'Read Earth Engine Output' >> KeyedReadFromTFRecord(args.input)
-        | 'Create Keys from Position Information' >> beam.Map(lambda x: (f'{file_path_key(x[0])},{x[1]}', x[2]))
-        | 'Parse Features' >> beam.MapTuple(lambda key, record: (key, tf.io.parse_single_example(record, FEATURES)))
-        | 'Tranpose' >> beam.MapTuple(transpose_per_key)
-        | 'add ndvi' >> beam.MapTuple(add_ndvi)
-        | 'Break into tensor with pixels as rows' >> beam.FlatMap(break_up_patch)
-        | 'Transform Data Dict into Tuples' \
+        | '1: Read Earth Engine Output' >> KeyedReadFromTFRecord(args.input)
+        | '2: Create Keys from Position Information' >> beam.Map(lambda x: (f'{file_path_key(x[0])},{x[1]}', x[2]))
+        | '3: Parse Features' >> beam.MapTuple(lambda key, record: (key, tf.io.parse_single_example(record, FEATURES)))
+        | '4: Tranpose' >> beam.MapTuple(transpose_per_key)
+        | '5: add ndvi' >> beam.MapTuple(add_ndvi)
+        | '6: Break into tensor with pixels as rows' >> beam.FlatMap(break_up_patch)
+        | '7: Transform Data Dict into Tuples' \
             >> beam.MapTuple(lambda data_key, data_dict: (data_key, tf.transpose(list(data_dict.values()))))
-        | 'add dim 1' \
+        | '8: add dim 1' \
             >> beam.MapTuple(lambda data_key, data_dict: (data_key, tf.expand_dims(data_dict, axis=1)))
-        | "RunInference" >> RunInference(model_handler)
-        | 'Parse Key' >> beam.MapTuple(parse_key)
-        #| 'Extract Patch Key' >> beam.MapTuple(lambda k,v: (k[:2],v))
-        | 'Create Tensor Flow Examples' >> beam.MapTuple(create_example)
-        | 'Extract file key for grouping' >> beam.MapTuple(lambda k,v: (k[0],(k[1],v)))
-        | 'Group by File Key' >> beam.GroupByKey()
-        | 'Map-Write to TFRecord' >> beam.ParDo(MapWriteToTFRecord(), args.output)
+        | '9: RunInference' >> RunInference(model_handler)
+        | '10: Parse Key' >> beam.MapTuple(parse_key)
+        | '11: Create Tensor Flow Examples' >> beam.MapTuple(create_example)
+        | '12: Extract file key for grouping' >> beam.MapTuple(lambda k,v: (k[0],(k[1],v)))
+        | '13: Group by File Key' >> beam.GroupByKey()
+        | '14: Map-Write to TFRecord' >> beam.ParDo(MapWriteToTFRecord(), args.output)
     )
     
     p.run()

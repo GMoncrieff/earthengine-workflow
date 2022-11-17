@@ -13,8 +13,7 @@ from apache_beam.ml.inference.base import ModelHandler
 import tensorflow as tf
 import numpy as np
 
-#import json
-
+#define vars
 BANDS = ['B2', 'B3', 'B4', 'B5', 'B6', 'B7']
 PATCH_DIMENSIONS_FLAT = [256*256,1]
 FEATURES = {
@@ -162,9 +161,3 @@ class MapWriteToTFRecord(beam.DoFn):
         writer.close()
         return [f'{output_dir}{file_key}']
     
-#def jsonify_data(key, data):
-#    data = [
-#       [float(element) for element in array]
-#        for array in data.numpy()
-#    ]
-#    return json.dumps({'key': key, 'input_1': data})

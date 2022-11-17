@@ -32,7 +32,7 @@ main:
         name: ${download_result.body.task}
         status: "SUCCEEDED"
 
-  #dataflow
+  #dataflow to make predictions
   - predict_dataflow:
       call: LaunchDataflow
       args:

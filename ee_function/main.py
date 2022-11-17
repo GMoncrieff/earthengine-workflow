@@ -5,6 +5,7 @@ import functions_framework
 
 BANDS = ['B2', 'B3', 'B4', 'B5', 'B6', 'B7']
 
+#cloud masking
 def maskL8sr(image):
   cloudShadowBitMask = ee.Number(2).pow(3).int()
   cloudsBitMask = ee.Number(2).pow(5).int()
@@ -30,9 +31,10 @@ def main(request):
     ee.Initialize(credentials)
 
     #aoi
-    EXPORT_REGION = ee.Geometry.Rectangle([-122.7, 37.3, -121.8, 38.00])
-    #EXPORT_REGION = ee.Geometry.Polygon([[[-122.6465380286344, 39.04658449307978],[-122.6465380286344, 37.24966450365536],[-119.4605028723844, 37.24966450365536],[-119.4605028723844, 39.04658449307978]]])
+    #EXPORT_REGION = ee.Geometry.Rectangle([-122.7, 37.3, -121.8, 38.00])
+    EXPORT_REGION = ee.Geometry.Polygon([[[-122.6465380286344, 39.04658449307978],[-122.6465380286344, 37.24966450365536],[-119.4605028723844, 37.24966450365536],[-119.4605028723844, 39.04658449307978]]])
     #EXPORT_REGION = ee.Geometry.Polygon([[[-125.30193824768067, 45.516811272883174], [-125.30193824768067, 37.049558686931945],[-117.96307106018067, 37.049558686931945],[-117.96307106018067, 45.516811272883174]]])
+    
     #get current date and convert to ee.Date
     end_date = ee.Date(date_str)
     start_date = end_date.advance(-1,'year')
@@ -44,7 +46,7 @@ def main(request):
         .median()
     
     # Specify patch and file dimensions.
-    #max file size is 100mb
+    # max file size is 100mb, if larger than 100mb, split into multiple files
     image_export_options = {
     'patchDimensions': [256, 256],
     'maxFileSize': 100000000,
