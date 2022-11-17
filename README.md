@@ -47,3 +47,5 @@ contains files to deploy the Cloud Run service that uploads the predictions back
 [setup.sh](setup.sh) sets up all the necessary permissions and deploys all the services. The final step of this script to to deploy a [Google Cloud Sheduler](https://cloud.google.com/scheduler) which will repeatedly call the workflow as make predictions on new imagery at the desired frequency.
 
 Look out for an upcoming blog post with a full rundown of deployment and design choices.
+
+Thank to [@mgietzmann](https://github.com/mgietzmann) for helping to build the first iteration of this pipeline
